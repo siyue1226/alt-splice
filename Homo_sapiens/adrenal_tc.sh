@@ -1,0 +1,87 @@
+#!/bin/bash
+start_time=`date +%s`
+
+### bash hints
+### 2>&1                        redirect stderr to stdout
+### | tee -a log.log            screen outputs also append to log file
+### ; ( exit ${PIPESTATUS} )    correct program exitting status
+### Only run parallel when you're sure that there are no errors.
+
+cd /home/wangq/data/bodymap2
+
+### bowtie index
+# bowtie2-build /home/wangq/data/bodymap2/ref/human.37.fa /home/wangq/data/bodymap2/ref/human.37
+
+#----------------------------#
+# tophat
+#----------------------------#
+# lane ERR030889
+
+cd /home/wangq/data/bodymap2/process/adrenal/ERR030889/
+
+echo "* Start tophat [adrenal] [ERR030889] `date`" | tee -a /home/wangq/data/bodymap2/log/tophat.log
+
+# tophat (single end)
+/home/wangq/bin/tophat -p 8 \
+    -G /home/wangq/data/bodymap2/ref/human.37.gtf \
+    -o /home/wangq/data/bodymap2/process/adrenal/ERR030889/th_out \
+    /home/wangq/data/bodymap2/ref/human.37 \
+    /home/wangq/data/bodymap2/process/adrenal/ERR030889/trimmed/ERR030889.sickle.fq.gz
+
+
+[ $? -ne 0 ] && echo `date` adrenal ERR030889 [tophat] failed >> /home/wangq/data/bodymap2/fail.log && exit 255
+echo "* End tophat [adrenal] [ERR030889] `date`" | tee -a /home/wangq/data/bodymap2/log/tophat.log
+
+# lane ERR030881
+
+cd /home/wangq/data/bodymap2/process/adrenal/ERR030881/
+
+echo "* Start tophat [adrenal] [ERR030881] `date`" | tee -a /home/wangq/data/bodymap2/log/tophat.log
+
+# tophat (pair end)
+/home/wangq/bin/tophat -p 8 \
+    -G /home/wangq/data/bodymap2/ref/human.37.gtf \
+    -o /home/wangq/data/bodymap2/process/adrenal/ERR030881/th_out \
+    /home/wangq/data/bodymap2/ref/human.37 \
+    /home/wangq/data/bodymap2/process/adrenal/ERR030881/trimmed/ERR030881_1.sickle.fq.gz \
+    /home/wangq/data/bodymap2/process/adrenal/ERR030881/trimmed/ERR030881_2.sickle.fq.gz
+
+
+[ $? -ne 0 ] && echo `date` adrenal ERR030881 [tophat] failed >> /home/wangq/data/bodymap2/fail.log && exit 255
+echo "* End tophat [adrenal] [ERR030881] `date`" | tee -a /home/wangq/data/bodymap2/log/tophat.log
+
+
+#----------------------------#
+# cufflinks
+#----------------------------#
+# lane ERR030889
+
+cd /home/wangq/data/bodymap2/process/adrenal/ERR030889/
+
+echo "* Start cufflinks [adrenal] [ERR030889] `date`" | tee -a /home/wangq/data/bodymap2/log/cufflinks.log
+
+# cufflinks
+/home/wangq/bin/cufflinks -p 8 \
+    --no-update-check \
+    -o /home/wangq/data/bodymap2/process/adrenal/ERR030889/cl_out \
+    /home/wangq/data/bodymap2/process/adrenal/ERR030889/th_out/accepted_hits.bam
+
+[ $? -ne 0 ] && echo `date` adrenal ERR030889 [cufflinks] failed >> /home/wangq/data/bodymap2/fail.log && exit 255
+echo "* End cufflinks [adrenal] [ERR030889] `date`" | tee -a /home/wangq/data/bodymap2/log/cufflinks.log
+
+# lane ERR030881
+
+cd /home/wangq/data/bodymap2/process/adrenal/ERR030881/
+
+echo "* Start cufflinks [adrenal] [ERR030881] `date`" | tee -a /home/wangq/data/bodymap2/log/cufflinks.log
+
+# cufflinks
+/home/wangq/bin/cufflinks -p 8 \
+    --no-update-check \
+    -o /home/wangq/data/bodymap2/process/adrenal/ERR030881/cl_out \
+    /home/wangq/data/bodymap2/process/adrenal/ERR030881/th_out/accepted_hits.bam
+
+[ $? -ne 0 ] && echo `date` adrenal ERR030881 [cufflinks] failed >> /home/wangq/data/bodymap2/fail.log && exit 255
+echo "* End cufflinks [adrenal] [ERR030881] `date`" | tee -a /home/wangq/data/bodymap2/log/cufflinks.log
+
+
